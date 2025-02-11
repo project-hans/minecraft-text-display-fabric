@@ -35,7 +35,7 @@ Get control items:
 Bitmap display:
 ```
 # Create directly
-execute unless entity @e[tag=bitmap_display] run summon minecraft:marker ~ ~1.25 ~ {Tags:["pre_bitmap_display"],Rotation:[90f,0f]}
+execute unless entity @e[tag=bitmap_display] run summon minecraft:marker ~ ~1.25 ~ {Tags:["bitmap_display"],Rotation:[90f,0f]}
 
 # Toggle with sound effects
 execute unless entity @e[tag=bitmap_display] run summon minecraft:marker ~ ~1.25 ~ {Tags:["pre_bitmap_display"],Rotation:[90f,0f]}
