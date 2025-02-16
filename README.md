@@ -1,4 +1,5 @@
 # Text Display Experiments
+# WIP! Currently very much not finished!
 ## Introduction
 This plugin showcases unusual ways to use Minecraft's text display entities.
 
