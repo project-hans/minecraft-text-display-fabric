@@ -28,6 +28,7 @@ open class Element constructor(val id: UUID = UUID.randomUUID()) {
         val controlIdKey = NamespacedKey.fromString("gui:control_id")!!
     }
 
+
     class Bindings {
         private val bindings = HashSet<PropertyBinding<Any>>()
 
