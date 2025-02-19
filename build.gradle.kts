@@ -1,106 +1,133 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+//plugins {
+//    kotlin("jvm") version "2.1.0"
+//}
+//
+//group = "com.heledron"
+//version = "1.0-SNAPSHOT"
+////application {
+////    mainClass.set("com.heledron.TextDisplayExperiments") // Add the appropriate main class if necessary
+////}
+//
+//repositories {
+//    mavenCentral()
+//    maven("https://repo.papermc.io/repository/maven-public/")
+//    maven("https://oss.sonatype.org/content/groups/public/")
+//    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+//}
+//
+//dependencies {
+//    implementation(kotlin("stdlib-jdk8", "2.1.0"))
+//    implementation("io.papermc.paper", "paper-api", "1.21.4-R0.1-SNAPSHOT")
+//    implementation("org.spigotmc", "spigot-api", "1.21.3-R0.1-SNAPSHOT")
+//    // Uncomment this if you need to add Kotlin test dependency
+//    // testImplementation(kotlin("test", "2.1.0"))
+//}
+//
+//tasks.withType<JavaCompile> {
+////    options.compilerArgs = listOf(
+////        "-Djogl.disable.openglcore=true",
+////        "-Djogl.disable.opengles=true",
+////        "-Djogl.disable.gpu=true"
+////    )
+//}
+//
+//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+//
+//}
+//
+//tasks.jar {
+//    manifest {
+//        attributes["Implementation-Title"] = "TextDisplayExperiments"
+//        attributes["Implementation-Version"] = version
+//    }
+//}
+//
+//tasks.register<Jar>("shadeJar") {
+//    from(configurations.runtimeClasspath.get().filter { it.exists() })
+//    with(tasks.jar.get())
+//    archiveClassifier.set("shaded")
+//}
+
+import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin.Companion.shadowJar
 
 plugins {
-    kotlin("jvm") version "2.0.20"
-    id("fabric-loom") version "1.9.2"
-    id("maven-publish")
+    kotlin("jvm") version "2.0.20-Beta1"
+    kotlin("kapt") version "2.0.20-Beta1"
+    id("com.gradleup.shadow") version "9.0.0-beta8"
+    id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.8"
+    kotlin("plugin.serialization") version "2.1.10"
+
 }
 
-version = project.property("mod_version") as String
-group = project.property("maven_group") as String
+group = "io.kouna"
+version = "1.0.0-SNAPSHOT"
 
-base {
-    archivesName.set(project.property("archives_base_name") as String)
-}
-
-val targetJavaVersion = 21
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-    // if it is present.
-    // If you remove this line, sources will not be generated.
-    withSourcesJar()
-}
-
-loom {
-    splitEnvironmentSourceSets()
-
-    mods {
-        register("playerpersistence") {
-            sourceSet("main")
-        }
-    }
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 repositories {
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
+    mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/") {
+        name = "papermc-repo"
+    }
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
+        name = "spigot-repo"
+    }
+    maven("https://oss.sonatype.org/content/groups/public/") {
+        name = "sonatype"
+    }
+    maven("https://oss.sonatype.org/content/repositories/snapshots") {
+        name = "sonatype-snapshots"
+    }
+    maven("https://oss.sonatype.org/content/repositories/central") {
+        name = "sonatype-central"
+    }
 }
 
 dependencies {
-    // To change the versions see the gradle.properties file
-    minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
-    mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
-    modImplementation("net.fabricmc:fabric-loader:${project.property("loader_version")}")
-    modImplementation("net.fabricmc:fabric-language-kotlin:${project.property("kotlin_loader_version")}")
+//    compileOnly("org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT") // The Spigot API with no shadowing. Requires the OSS repo.
+//    compileOnly("org.spigotmc:spigot:1.21.4-R0.1-SNAPSHOT") // The full Spigot server with no shadowing. Requires mavenLocal.
+    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+//    compileOnly("io.papermc.paper:paper:1.21.4-R0.1-SNAPSHOT")
 
-    // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
-
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("me.friwi", "jcefmaven", "127.3.1")
+    implementation("org.joml", "joml", "1.10.8")
 }
 
-tasks.processResources {
-    inputs.property("version", project.version)
-    inputs.property("minecraft_version", project.property("minecraft_version"))
-    inputs.property("loader_version", project.property("loader_version"))
-    filteringCharset = "UTF-8"
+tasks {
+    assemble {
+        dependsOn(shadowJar)
+    }
+    compileJava {
+        options.encoding = "UTF-8"
+        options.release.set(21)
 
-    filesMatching("fabric.mod.json") {
-        expand(
-            "version" to project.version,
-            "minecraft_version" to project.property("minecraft_version"),
-            "loader_version" to project.property("loader_version"),
-            "kotlin_loader_version" to project.property("kotlin_loader_version")
-        )
+    }
+    compileKotlin {
+        kotlinOptions.jvmTarget = "21"
+
     }
 }
-
-tasks.withType<JavaCompile>().configureEach {
-    // ensure that the encoding is set to UTF-8, no matter what the system default is
-    // this fixes some edge cases with special characters not displaying correctly
-    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-    // If Javadoc is generated, this must be specified in that task too.
-    options.encoding = "UTF-8"
-    options.release.set(targetJavaVersion)
+kotlin {
+    jvmToolchain(21)
 }
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions.jvmTarget.set(JvmTarget.fromTarget(targetJavaVersion.toString()))
-}
-
 tasks.jar {
-    from("LICENSE") {
-        rename { "${it}_${project.base.archivesName}" }
-    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// configure the maven publication
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            groupId = "maven.modrinth"
-            artifactId = project.property("archives_base_name") as String
-            version = project.property("mod_version") as String
 
-            from(components["java"])
-        }
-    }
+//completely useless, but will complain if missing
+val templateSource = file("src/main/templates")
+val templateDest = layout.buildDirectory.dir("generated/sources/templates")
 
-    repositories {
-        mavenLocal()
-    }
+val generateTemplates by tasks.registering(Copy::class) {
+    val props = mapOf("version" to project.version)
+    inputs.properties(props)
+    from(templateSource)
+    into(templateDest)
+    expand(props)
 }
+
+sourceSets["main"].java.srcDir(generateTemplates.map { it.destinationDir })
